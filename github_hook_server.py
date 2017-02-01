@@ -11,8 +11,8 @@ from slack import notify_reviewer
 
 app = Flask(__name__)
 app.config['GITHUB_WEBHOOKS_KEY'] = os.environ.get('GITHUB_WEBHOOKS_KEY')
-app.config['VALIDATE_IP'] = True
-app.config['VALIDATE_SIGNATURE'] = True
+app.config['VALIDATE_IP'] = os.environ.get('GIT_HOOK_VALIDATE_IP', False)
+app.config['VALIDATE_SIGNATURE'] = os.environ.get('GIT_HOOK_VALIDATE_SIGNATURE', False)
 
 hooks = Hooks(app, url='/hooks')
 
