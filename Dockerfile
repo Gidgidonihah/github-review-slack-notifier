@@ -1,4 +1,4 @@
-FROM tiangolo/uwsgi-nginx-flask:flask-python3.5
+FROM python:3.5
 
 ADD . /app
 WORKDIR /app
