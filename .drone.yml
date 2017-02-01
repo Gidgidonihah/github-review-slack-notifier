@@ -1,0 +1,30 @@
+workspace:
+  base: /app
+  path: .
+
+pipeline:
+  test:
+    image: python:3.5
+    environment:
+      - PYTHONPATH=/app:$PYTHONPATH
+      - CI_BRANCH=${DRONE_COMMIT_BRANCH}
+    commands:
+      - pip install -r requirements.txt
+      - pip install -r requirements-dev.txt
+      - coverage run -m unittest discover
+      - coverage report -m
+  code-standards:
+    image: python:3.5
+    environment:
+      - PYTHONPATH=/app:$PYTHONPATH
+      - CI_BRANCH=${DRONE_COMMIT_BRANCH}
+    commands:
+      - pip install -r requirements.txt
+      - pip install -r requirements-dev.txt
+      - flake8
+      - pylint .
+      #- pip install coveralls==1.1
+      #- export COVERALLS_REPO_TOKEN=Farts
+      - coveralls
+    when:
+      event: [pull_request]
