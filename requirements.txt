@@ -1,5 +1,3 @@
 slackclient
-pylint
-flake8
 Flask-Hookserver
 feedparser

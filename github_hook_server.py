@@ -34,4 +34,4 @@ def pull_request(data, guid):
     return result
 
 
-app.run(port=8008)
+app.run(host='0.0.0.0')
