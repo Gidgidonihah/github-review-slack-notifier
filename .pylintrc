@@ -1,0 +1,30 @@
+[MASTER]
+# Add <file or directory> to the black list. It should be a base name, not a
+# path. You may set this option multiple times.
+# ignore=migrations
+
+# List of plugins (as comma separated values of python modules names) to load,
+# usually to register additional checkers.
+# load-plugins=pylint_django
+
+[MESSAGES CONTROL]
+disable=locally-disabled
+# disable=locally-disabled,too-many-ancestors,too-few-public-methods
+
+[SIMILARITIES]
+ignore-imports=y
+
+[FORMAT]
+max-line-length=120
+docstring-min-length=5
+
+[BASIC]
+variable-rgx=[a-z_][a-z0-9_]{2,35}$
+function-rgx=[a-z_][a-z0-9_]{2,40}$
+method-rgx=[a-z_][a-z0-9_]{2,40}$
+
+[REPORTS]
+reports=n
+
+[TYPECHECK]
+ignored-classes=responses

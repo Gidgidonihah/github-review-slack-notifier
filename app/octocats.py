@@ -9,7 +9,7 @@ import urllib.request
 
 import feedparser
 
-RSS_FILE = 'octocats.rss'
+RSS_FILE = '/tmp/octocats.rss'
 
 
 def get_random_octocat_image():

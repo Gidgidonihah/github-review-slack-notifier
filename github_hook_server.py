@@ -6,26 +6,33 @@ import os
 from flask import Flask
 from flask_hookserver import Hooks
 
-from github import validate_review_request
-from slack import notify_reviewer
+from app.github import validate_review_request
+from app.slack import notify_reviewer
 
-app = Flask(__name__)
-app.config['GITHUB_WEBHOOKS_KEY'] = os.environ.get('GITHUB_WEBHOOKS_KEY')
+APP = Flask(__name__)
+APP.config['GITHUB_WEBHOOKS_KEY'] = os.environ.get('GITHUB_WEBHOOKS_KEY')
 if os.environ.get('GIT_HOOK_VALIDATE_IP', 'True').lower() in ['false', '0']:
-    app.config['VALIDATE_IP'] = False
+    APP.config['VALIDATE_IP'] = False
 if os.environ.get('GIT_HOOK_VALIDATE_SIGNATURE', 'True').lower() in ['false', '0']:
-    app.config['VALIDATE_SIGNATURE'] = False
+    APP.config['VALIDATE_SIGNATURE'] = False
 
-hooks = Hooks(app, url='/hooks')
+HOOKS = Hooks(APP, url='/hooks')
 
 
-@hooks.hook('ping')
-def ping(data, guid):
+@HOOKS.hook('ping')
+def ping(_data, _guid):
     return 'pong'
 
 
-@hooks.hook('pull_request')
-def pull_request(data, guid):
+@HOOKS.hook('pull_request')
+def pull_request(data, _guid):
+    """
+    Handle a pull request webhook and notify the reviewer on slack.
+
+    This will validate the request making sure it is an action that is written to be handled,
+    then will kick off apropriate actions for the hook such as sending slack notifications
+    to the requested reviewer.
+    """
 
     if validate_review_request(data):
         notify_reviewer(data)
@@ -36,4 +43,5 @@ def pull_request(data, guid):
     return result
 
 
-app.run(host='0.0.0.0')
+if __name__ == "__main__":
+    APP.run(host='0.0.0.0')

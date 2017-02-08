@@ -1,14 +1,15 @@
 """ Code related to slack webhooks and API calls. """
 
-import copy
 import datetime
 import os
 import logging
+import math
 
 from slackclient import SlackClient
 
-from github import lookup_github_full_name
-from octocats import get_random_octocat_image
+from app.github import lookup_github_full_name
+from app.github import GithubWebhookPayloadParser
+from app.octocats import get_random_octocat_image
 
 
 def notify_reviewer(data):
@@ -17,20 +18,25 @@ def notify_reviewer(data):
     _send_slack_message(payload)
 
 
-def _create_slack_message_payload(data, channel=None):
+def _create_slack_message_payload(data):
     payload_parser = GithubWebhookPayloadParser(data)
 
     channel = _get_notification_channel(data)
 
     pull_request_url = payload_parser.get_pull_request_url()
-    pull_request_title = payload_parser.get_pull_request_title()
-    pull_request_repo = payload_parser.get_pull_request_repo()
-    pull_request_number = payload_parser.get_pull_request_number()
-    pull_request_author = _get_slack_username_by_github_username(payload_parser.get_pull_request_author())
+    pull_request_title = payload_parser.get_pull_request_title() or 'Unknown Title'
+    pull_request_repo = payload_parser.get_pull_request_repo() or 'Unknown'
+    pull_request_number = payload_parser.get_pull_request_number() or math.pi
     pull_request_author_image = payload_parser.get_pull_request_author_image()
     pull_request_description = payload_parser.get_pull_request_description()
 
-    msg_text = "You've been asked by @{} to review a pull request. Lucky you!".format(pull_request_author)
+    pull_request_author = _get_slack_username_by_github_username(payload_parser.get_pull_request_author())
+    if pull_request_author:
+        pull_request_author = '@{}'.format(pull_request_author)
+    else:
+        pull_request_author = 'someone'
+
+    msg_text = "You've been asked by {} to review a pull request. Lucky you!".format(pull_request_author)
     if not channel:
         channel = os.environ.get('DEFAULT_NOTIFICATION_CHANNEL')
         github_username = _get_unmatched_username(data)
@@ -53,7 +59,7 @@ def _create_slack_message_payload(data, channel=None):
                 "thumb_url": get_random_octocat_image(),
                 "footer": "Github PR Notifier",
                 "footer_icon": pull_request_author_image,
-                "ts": datetime.datetime.now().timestamp()
+                "ts": int(datetime.datetime.now().timestamp())
             }
         ]
     }
@@ -118,47 +124,8 @@ def _send_slack_message(payload):
     slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
     response = slack_client.api_call("chat.postMessage", **payload)
 
+    logger = logging.getLogger(__name__)
     if not response.get('ok'):
-        logger = logging.getLogger(__name__)
         logger.warning('Unable to send message. Response: %s\nPayload:\n%s', response, payload)
-
-
-class GithubWebhookPayloadParser(object):
-    """ A class to parse a github payload and return specific elements. """
-
-    def __init__(self, data=None):
-        if data is None:
-            data = {}
-        self._data = copy.copy(data)
-
-    def get_request_reviewer_username(self):
-        """ Parse and retrieve the requested reviewer username. """
-        return self._data.get('requested_reviewer', {}).get('login')
-
-    def get_pull_request_title(self):
-        """ Parse and retrieve the pull request title. """
-        return self._data.get('pull_request', {}).get('title', 'Unknown Title')
-
-    def get_pull_request_url(self):
-        """ Parse and retrieve the pull request html url. """
-        return self._data.get('pull_request', {}).get('html_url')
-
-    def get_pull_request_repo(self):
-        """ Parse and retrieve the pull request repository name. """
-        return self._data.get('repository', {}).get('full_name')
-
-    def get_pull_request_number(self):
-        """ Parse and retrieve the pull request number. """
-        return self._data.get('number')
-
-    def get_pull_request_author(self):
-        """ Parse and retrieve the pull request author. """
-        return self._data.get('pull_request', {}).get('user', {}).get('login')
-
-    def get_pull_request_author_image(self):
-        """ Parse and retrieve the pull request author image. """
-        return self._data.get('pull_request', {}).get('user', {}).get('avatar_url')
-
-    def get_pull_request_description(self):
-        """ Parse and retrieve the pull request repository description. """
-        return self._data.get('pull_request', {}).get('body')
+    else:
+        logger.info('Success!')
