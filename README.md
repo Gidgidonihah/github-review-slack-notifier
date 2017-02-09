@@ -1,6 +1,7 @@
 # github-slack-notifier
 
-This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond to custom github webhooks.
+This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond
+to custom github webhooks.
 
 ## What it does
 
@@ -23,10 +24,11 @@ When a pull request hook is received, the app does the following things:
 
 First, create a custom slack bot. Get the API Key.
 
-Next, get a Github API. This is needed to lookup a user's full name.
+Next, get a Github API Key. This is needed to lookup a user's full name.
 
-Next, create a custom github webhook on your repo or organization. The pull request event is currently the only event that matters. *Make note of the secret*
-Point the URL to where you will be hosting your code. Make sure to include `/hooks`. e.g. `https://my-github.example.com/hooks`
+Next, create a custom github webhook on your repo or organization. The pull request event is currently the only event
+that matters. *Make note of the secret* Point the URL to where you will be hosting your code. Make sure to include
+`/hooks`. e.g. `https://my-github.example.com/hooks`
 
 Finally, host the code on a server that github can reach. You will need the following environment variables:
 
