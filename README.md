@@ -3,6 +3,10 @@
 This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond
 to custom github webhooks.
 
+![Coverage Status](https://coveralls.io/repos/github/DobaTech/github-review-slack-notifier/badge.svg?branch=master)
+![Build Status](http://ci.projectthanos.com/api/badges/DobaTech/github-review-slack-notifier/status.svg)
+
+
 ## What it does
 
 When a pull request hook is received, the app does the following things:
