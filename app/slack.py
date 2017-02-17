@@ -12,6 +12,7 @@ from app.github import GithubWebhookPayloadParser
 from app.octocats import get_random_octocat_image
 
 
+# fixme: should this be a class?
 def notify_reviewer(data):
     """ Compile the necessary information and send a slack notification. """
     payload = _create_slack_message_payload(data)
@@ -19,54 +20,70 @@ def notify_reviewer(data):
 
 
 def _create_slack_message_payload(data):
-    payload_parser = GithubWebhookPayloadParser(data)
+    pr_metadata = _get_pull_request_metadata(data)
 
-    channel = _get_notification_channel(data)
-
-    pull_request_url = payload_parser.get_pull_request_url()
-    pull_request_title = payload_parser.get_pull_request_title() or 'Unknown Title'
-    pull_request_repo = payload_parser.get_pull_request_repo() or 'Unknown'
-    pull_request_number = payload_parser.get_pull_request_number() or math.pi
-    pull_request_author_image = payload_parser.get_pull_request_author_image()
-    pull_request_description = payload_parser.get_pull_request_description()
-
-    pull_request_author = _get_slack_username_by_github_username(payload_parser.get_pull_request_author())
-    if pull_request_author:
-        pull_request_author = '@{}'.format(pull_request_author)
-    else:
-        pull_request_author = 'someone'
-
-    msg_text = "You've been asked by {} to review a pull request. Lucky you!".format(pull_request_author)
-    if not channel:
+    msg_text = "You've been asked by {} to review a pull request. Lucky you!".format(pr_metadata.get('author'))
+    if not pr_metadata.get('channel'):
         channel = os.environ.get('DEFAULT_NOTIFICATION_CHANNEL')
         github_username = _get_unmatched_username(data)
         msg_text = '{}! {}'.format(github_username, msg_text)
 
+    message = _build_payload(msg_text, pr_metadata)
+
+    return message
+
+
+def _build_payload(msg_text, pr_metadata):
     message = {
         "text": msg_text,
         "as_user": True,
         "link_names": True,
         "attachments": [
             {
-                "fallback": "<{}|{}>".format(pull_request_url, pull_request_title),
+                "fallback": "<{}|{}>".format(pr_metadata.get('url'), pr_metadata('title')),
                 "color": "#36a64f",
-                "author_name": "{} pull request #{}".format(pull_request_repo, pull_request_number),
-                "author_link": pull_request_url,
+                "author_name": "{} pull request #{}".format(pr_metadata.get('repo'), pr_metadata.get('number')),
+                "author_link": pr_metadata.get('url'),
                 "author_icon": "https://github.com/favicon.ico",
-                "title": pull_request_title,
-                "title_link": pull_request_url,
-                "text": pull_request_description,
+                "title": pr_metadata.get('title'),
+                "title_link": pr_metadata.get('url'),
+                "text": pr_metadata.get('description'),
                 "thumb_url": get_random_octocat_image(),
                 "footer": "Github PR Notifier",
-                "footer_icon": pull_request_author_image,
+                "footer_icon": pr_metadata.get('author_image'),
                 "ts": int(datetime.datetime.now().timestamp())
             }
         ]
     }
-    if channel:
-        message['channel'] = channel
 
+    # fixme: Jason, add a comment here explaining channel
+    if pr_metadata.get('channel'):
+        message['channel'] = pr_metadata.get('channel')
     return message
+
+
+def _get_pull_request_metadata(data):
+    pull_request_data = {}
+    payload_parser = GithubWebhookPayloadParser(data)
+
+    pull_request_data['url'] = payload_parser.get_pull_request_url()
+    pull_request_data['title'] = payload_parser.get_pull_request_title() or 'Unknown Title'
+    pull_request_data['repo'] = payload_parser.get_pull_request_repo() or 'Unknown'
+    pull_request_data['number'] = payload_parser.get_pull_request_number() or math.pi
+    pull_request_data['author_image'] = payload_parser.get_pull_request_author_image()
+    pull_request_data['description'] = payload_parser.get_pull_request_description()
+    pull_request_data['channel'] = _get_notification_channel(data)
+
+    pull_request_author = _get_slack_username_by_github_username(payload_parser.get_pull_request_author())
+
+    if pull_request_author:
+        pull_request_author = '@{}'.format(pull_request_author)
+    else:
+        pull_request_author = 'someone'
+
+    pull_request_data['author'] = pull_request_author
+
+    return pull_request_data
 
 
 def _get_notification_channel(data):
