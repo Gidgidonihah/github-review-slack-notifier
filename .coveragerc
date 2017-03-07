@@ -1,0 +1,6 @@
+[report]
+omit =
+    setup.py
+    run.py
+    */test*
+    */.virtualenvs/*

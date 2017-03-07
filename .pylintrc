@@ -8,8 +8,7 @@
 # load-plugins=pylint_django
 
 [MESSAGES CONTROL]
-disable=locally-disabled
-# disable=locally-disabled,too-many-ancestors,too-few-public-methods
+disable=locally-disabled,cyclic-import
 
 [SIMILARITIES]
 ignore-imports=y
