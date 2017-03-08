@@ -7,19 +7,24 @@ import requests
 from werkzeug.exceptions import BadRequest
 
 
-def validate_review_request(data):
+def is_valid_pull_request(data):
     """ Verify that the request from github is a valid review request. """
+
+    is_valid_request = _validate_pull_request(data)
+    is_valid_action = data.get('action') == 'review_requested' or data.get('action') == 'assigned'
+
+    return is_valid_request and is_valid_action
+
+
+def _validate_pull_request(data):
 
     if 'action' not in data:
         raise BadRequest('no event supplied')
 
-    # Handle only review_requested actions
-    if data.get('action') == 'review_requested':
-        if 'pull_request' not in data or 'html_url' not in data.get('pull_request'):
-            raise BadRequest('payload.pull_request.html_url missing')
-        return True
-    else:
-        return False
+    if 'pull_request' not in data or 'html_url' not in data.get('pull_request'):
+        raise BadRequest('payload.pull_request.html_url missing')
+
+    return True
 
 
 def lookup_github_full_name(gh_username):

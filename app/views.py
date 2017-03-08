@@ -2,8 +2,8 @@
 """ Our github hook receiving server. """
 
 from app import HOOKS
-from app.github import validate_review_request
-from app.slack import notify_reviewer
+from app.github import is_valid_pull_request
+from app.slack import notify_recipient
 
 
 @HOOKS.hook('ping')
@@ -21,9 +21,9 @@ def pull_request(data, _guid):
     to the requested reviewer.
     """
 
-    if validate_review_request(data):
-        notify_reviewer(data)
-        result = 'Reviewer Notified'
+    if is_valid_pull_request(data):
+        notify_recipient(data)
+        result = 'Recipient Notified'
     else:
         result = 'Action ({}) ignored'.format(data.get('action'))
 

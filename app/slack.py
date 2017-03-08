@@ -12,7 +12,7 @@ from app.github import GithubWebhookPayloadParser
 from app.octocats import get_random_octocat_image
 
 
-def notify_reviewer(data):
+def notify_recipient(data):
     """ Compile the necessary information and send a slack notification. """
     payload = _create_slack_message_payload(data)
     _send_slack_message(payload)
@@ -21,14 +21,27 @@ def notify_reviewer(data):
 def _create_slack_message_payload(data):
     pr_metadata = _get_pull_request_metadata(data)
 
-    msg_text = "You've been asked by {} to review a pull request. Lucky you!".format(pr_metadata.get('author'))
+    msg_text = _get_message(pr_metadata, data)
+    message = _build_payload(msg_text, pr_metadata)
+
+    return message
+
+
+def _get_message(pr_metadata, data):
+
+    if data.get('action') == 'review_requested':
+        action_msg = 'asked by {author} to review a pull request'.format(author=pr_metadata.get('author'))
+    elif data.get('action') == 'assigned':
+        action_msg = 'assigned a pull request by {author}'.format(author=pr_metadata.get('author'))
+    else:
+        action_msg = 'pinged'
+
+    msg_text = "You've been {action}. Lucky you!".format(action=action_msg)
     if pr_metadata.get('channel') == os.environ.get('DEFAULT_NOTIFICATION_CHANNEL'):
         github_username = _get_unmatched_username(data)
         msg_text = '{}! {}'.format(github_username, msg_text)
 
-    message = _build_payload(msg_text, pr_metadata)
-
-    return message
+    return msg_text
 
 
 def _build_payload(msg_text, pr_metadata):
