@@ -8,13 +8,14 @@ import responses
 from werkzeug.exceptions import BadRequest
 
 from app.github import lookup_github_full_name
-from app.github import validate_review_request
+from app.github import is_valid_pull_request
 from app.github import GithubWebhookPayloadParser
 
 
 FULL_NAME = 'Bob Barker'
 GENERIC_USERNAME = 'big_daddy_bob'
 SAMPLE_GITHUB_PAYLOAD = {
+    'action': 'review_requested',
     'number': 1,
     'requested_reviewer': {
         'login': GENERIC_USERNAME,
@@ -34,12 +35,10 @@ SAMPLE_GITHUB_PAYLOAD = {
 }
 
 
-class GithubTest(TestCase):
-    """ Test the github module. """
+class GithubReviewRequestTest(TestCase):
+    """ Test the github review request functions. """
 
     def setUp(self):
-        self.gh_username = 'gidgidonihah'
-        self.gh_full_name = 'Jason Weir'
         self.valid_request = {
             'action': 'review_requested',
             'pull_request': {
@@ -47,38 +46,46 @@ class GithubTest(TestCase):
             },
         }
 
-    def test_validate_review_request_good(self):
-        """ Test a good validate_review_request. """
-        is_valid_request = validate_review_request(self.valid_request)
+    def test_is_valid_pull_request_good(self):
+        """ Test a good is_valid_pull_request. """
+        is_valid_request = is_valid_pull_request(self.valid_request)
         self.assertTrue(is_valid_request)
 
-    def test_validate_review_request_missing_action(self):
+    def test_is_valid_pull_request_missing_action(self):
         """ Test with missing action """
         with self.assertRaises(BadRequest):
             data = self.valid_request.copy()
             del data['action']
-            validate_review_request(data)
+            is_valid_pull_request(data)
 
-    def test_validate_review_request_missing_pulL_request(self):
+    def test_is_valid_pull_request_missing_pulL_request(self):
         """ Test with missing pull_request dict """
         with self.assertRaises(BadRequest):
             data = self.valid_request.copy()
             del data['pull_request']
-            validate_review_request(data)
+            is_valid_pull_request(data)
 
-    def test_validate_review_request_missing_html_url(self):
+    def test_is_valid_pull_request_missing_html_url(self):
         """ Test with missing html_url on pull_request dict """
         with self.assertRaises(BadRequest):
             data = self.valid_request.copy()
             data['pull_request'] = {}
-            validate_review_request(data)
+            is_valid_pull_request(data)
 
-    def test_validate_review_request_different_action(self):
+    def test_is_valid_pull_request_different_action(self):
         """ Test with non matched action """
         data = self.valid_request.copy()
         data['action'] = 'generic_action'
-        is_valid_request = validate_review_request(data)
+        is_valid_request = is_valid_pull_request(data)
         self.assertFalse(is_valid_request)
+
+
+class GeneralGithubTest(TestCase):
+    """ Test the general github functions. """
+
+    def setUp(self):
+        self.gh_username = 'gidgidonihah'
+        self.gh_full_name = 'Jason Weir'
 
     def test_lookup_github_fullname(self):
         """ Test lookup_github_full_name. """

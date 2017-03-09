@@ -30,29 +30,30 @@ class SlackTest(TestCase):
                 and os.environ.get('SLACK_BOT_TOKEN'),
                 "valid slack and github tokens needed")
     @skipUnless(os.environ.get('TEST_ON_NETWORK'), "Network tests ignored")
-    def test_notify_reviewer_on_network(self):
+    def test_notify_recipient_on_network(self):
         """ Full integration test on the network. """
         with self.assertLogs('app.slack', level='INFO'):
-            slack.notify_reviewer({})
+            slack.notify_recipient({})
 
     @patch('app.slack.get_random_octocat_image')
     @patch('app.slack.lookup_github_full_name')
     @patch('slackclient.SlackClient.api_call')
-    def test_notify_reviewer(self, slack_client, get_name, get_octocat):
+    def test_notify_recipient(self, slack_client, get_name, get_octocat):
         """ Full integration test. """
         slack_client.return_value = {'ok': False, 'error': 'not_authed'}
         get_name.return_value = FULL_NAME
         get_octocat.return_value = 'octocat'
 
         with self.assertLogs('app.slack', level='WARNING'):
-            slack.notify_reviewer(SAMPLE_GITHUB_PAYLOAD)
+            slack.notify_recipient(SAMPLE_GITHUB_PAYLOAD)
 
     @patch('os.environ.get')
     @patch('app.slack.get_random_octocat_image')
     @patch('app.slack._get_slack_username_by_github_username')
     @patch('app.slack._get_unmatched_username')
     @patch('app.slack._get_notification_channel')
-    def test_create_slack_message_payload(self, get_channel, get_username, get_unbygh, get_octocat, get_env):
+    def test_create_full_review_slack_message_payload(self, get_channel, get_username, get_unbygh,
+                                                      get_octocat, get_env):
         """ Should create a fully valid slack message payload. """
         get_channel.return_value = '#leia'
         get_username.return_value = '@luke'
@@ -61,14 +62,51 @@ class SlackTest(TestCase):
         get_env.return_value = '#default-channel'
 
         payload = slack._create_slack_message_payload(SAMPLE_GITHUB_PAYLOAD)
-        generated_payload = {'text': "You've been asked by @obiwan to review a pull request. Lucky you!", 'as_user': True, 'link_names': True, 'attachments': [{'fallback': '<http://www.example.com|PR Title>', 'color': '#36a64f', 'author_name': 'Example Repository pull request #1', 'author_link': 'http://www.example.com', 'author_icon': 'https://github.com/favicon.ico', 'title': 'PR Title', 'title_link': 'http://www.example.com', 'text': 'An example pull request.', 'thumb_url': 'octocat', 'footer': 'Github PR Notifier', 'footer_icon': 'https://github.com/apple-touch-icon-180x180.png', 'ts': int(datetime.datetime.now().timestamp())}], 'channel': '#leia'}  # noqa: E501, pylint: disable=line-too-long
-        self.assertDictEqual(payload, generated_payload)
+
+        self.assertEqual(payload.get('text'), "You've been asked by @obiwan to review a pull request. Lucky you!")
+        self.assertTrue(payload.get('as_user'))
+        self.assertTrue(payload.get('link_names'))
+        self.assertEqual(payload.get('channel'), '#leia')
+
+        attachment = payload.get('attachments')[0]
+        self.assertEqual(attachment.get('fallback'), "<http://www.example.com|PR Title>")
+        self.assertEqual(attachment.get('color'), '#36a64f')
+        self.assertEqual(attachment.get('author_name'), 'Example Repository pull request #1')
+        self.assertEqual(attachment.get('author_link'), 'http://www.example.com')
+        self.assertEqual(attachment.get('author_icon'), 'https://github.com/favicon.ico')
+        self.assertEqual(attachment.get('title'), 'PR Title')
+        self.assertEqual(attachment.get('title_link'), 'http://www.example.com')
+        self.assertEqual(attachment.get('text'), 'An example pull request.')
+        self.assertEqual(attachment.get('thumb_url'), 'octocat')
+        self.assertEqual(attachment.get('footer'), 'Github PR Notifier')
+        self.assertEqual(attachment.get('footer_icon'), 'https://github.com/apple-touch-icon-180x180.png')
+        self.assertEqual(attachment.get('ts'), int(datetime.datetime.now().timestamp()))
 
     @patch('os.environ.get')
     @patch('app.slack.get_random_octocat_image')
     @patch('app.slack._get_slack_username_by_github_username')
     @patch('app.slack._get_unmatched_username')
-    def test_create_slack_message_payload_with_default_channel(self, get_username, get_unbygh, get_octocat, get_env):
+    @patch('app.slack._get_notification_channel')
+    def test_create_assignment_slack_message_payload(self, get_channel, get_username, get_unbygh, get_octocat, get_env):
+        """ Should create a fully valid slack message payload. """
+        get_channel.return_value = '#leia'
+        get_username.return_value = '@luke'
+        get_unbygh.return_value = 'obiwan'
+        get_octocat.return_value = 'octocat'
+        get_env.return_value = '#default-channel'
+
+        request_payload = SAMPLE_GITHUB_PAYLOAD.copy()
+        request_payload['action'] = 'assigned'
+
+        payload = slack._create_slack_message_payload(request_payload)
+        self.assertEqual(payload.get('text'), "You've been assigned a pull request by @obiwan. Lucky you!")
+
+    @patch('os.environ.get')
+    @patch('app.slack.get_random_octocat_image')
+    @patch('app.slack._get_slack_username_by_github_username')
+    @patch('app.slack._get_unmatched_username')
+    def test_create_slack_review_message_payload_with_default_channel(self, get_username, get_unbygh,
+                                                                      get_octocat, get_env):
         """ Should create a slack payload with a default (env var) channel. """
         get_username.return_value = '@luke'
         get_unbygh.return_value = None
@@ -76,15 +114,13 @@ class SlackTest(TestCase):
         get_env.return_value = '#default-channel'
 
         payload = slack._create_slack_message_payload(SAMPLE_GITHUB_PAYLOAD)
-        generated_payload = {'text': "@luke! You've been asked by someone to review a pull request. Lucky you!", 'as_user': True, 'link_names': True, 'attachments': [{'fallback': '<http://www.example.com|PR Title>', 'color': '#36a64f', 'author_name': 'Example Repository pull request #1', 'author_link': 'http://www.example.com', 'author_icon': 'https://github.com/favicon.ico', 'title': 'PR Title', 'title_link': 'http://www.example.com', 'text': 'An example pull request.', 'thumb_url': 'octocat', 'footer': 'Github PR Notifier', 'footer_icon': 'https://github.com/apple-touch-icon-180x180.png', 'ts': int(datetime.datetime.now().timestamp())}], 'channel': '#default-channel'}  # noqa: E501, pylint: disable=line-too-long
-        self.assertDictEqual(payload, generated_payload)
+        self.assertEqual(payload.get('channel'), get_env.return_value)
 
     @patch('os.environ.get')
     @patch('app.slack.get_random_octocat_image')
     @patch('app.slack._get_slack_username_by_github_username')
     @patch('app.slack._get_unmatched_username')
-    def test_create_slack_message_payload_with_no_data(self, get_username,
-                                                       get_unbygh, get_octocat, get_env):
+    def test_create_review_slack_message_payload_with_no_data(self, get_username, get_unbygh, get_octocat, get_env):
         """ Should create a slack message without any data. """
         get_octocat.return_value = 'octocat'
         get_env.return_value = None
@@ -92,8 +128,10 @@ class SlackTest(TestCase):
         get_unbygh.return_value = None
 
         payload = slack._create_slack_message_payload({})
-        generated_payload = {'text': "None! You've been asked by someone to review a pull request. Lucky you!", 'as_user': True, 'link_names': True, 'attachments': [{'fallback': '<None|Unknown Title>', 'color': '#36a64f', 'author_name': 'Unknown pull request #3.141592653589793', 'author_link': None, 'author_icon': 'https://github.com/favicon.ico', 'title': 'Unknown Title', 'title_link': None, 'text': None, 'thumb_url': 'octocat', 'footer': 'Github PR Notifier', 'footer_icon': None, 'ts': int(datetime.datetime.now().timestamp())}], 'channel': None}  # noqa: E501, pylint: disable=line-too-long
-        self.assertDictEqual(payload, generated_payload)
+        attachment = payload.get('attachments')[0]
+        self.assertEqual(attachment.get('fallback'), '<None|Unknown Title>')
+        self.assertEqual(attachment.get('author_name'), 'Unknown pull request #3.141592653589793')
+        self.assertEqual(attachment.get('title'), 'Unknown Title')
 
     @patch('app.slack._get_slack_username_by_github_username')
     def test_get_notification_channel(self, username_getter):

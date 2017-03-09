@@ -3,8 +3,8 @@
 This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond
 to custom github webhooks.
 
-![Coverage Status](https://coveralls.io/repos/github/DobaTech/github-review-slack-notifier/badge.svg?branch=master)
-![Build Status](http://ci.projectthanos.com/api/badges/DobaTech/github-review-slack-notifier/status.svg)
+[![Coverage Status](https://coveralls.io/repos/github/DobaTech/github-review-slack-notifier/badge.svg?branch=master)](https://coveralls.io/github/DobaTech/github-review-slack-notifier)
+[![Build Status](http://ci.projectthanos.com/api/badges/DobaTech/github-review-slack-notifier/status.svg)](https://ci.projectthanos.com/DobaTech/github-review-slack-notifier)
 
 
 ## What it does
@@ -47,6 +47,7 @@ export DEFAULT_NOTIFICATION_CHANNEL='#<YOUR DEFAULT SLACK CHANNEL>'
 
 ## TODO
 
+* notification of review completion
 * The slack user lookup is not cached.
 * Perhaps would be better as an app that stores the github/slack username link.
 * The matching is imprecise and would probably break with two people of the same name.
