@@ -7,10 +7,10 @@ from unittest import skipUnless
 import responses
 from werkzeug.exceptions import BadRequest
 
-from app.github import lookup_github_full_name
-from app.github import is_valid_pull_request
 from app.github import GithubWebhookPayloadParser
-
+from app.github import get_recipient_github_username_by_action
+from app.github import is_valid_pull_request
+from app.github import lookup_github_full_name
 
 FULL_NAME = 'Bob Barker'
 GENERIC_USERNAME = 'big_daddy_bob'
@@ -87,6 +87,28 @@ class GeneralGithubTest(TestCase):
         self.gh_username = 'gidgidonihah'
         self.gh_full_name = 'Jason Weir'
 
+    def test_get_recipient_github_username_by_action_review_request(self):
+        """ Should return the requested reviewers username """
+        username = get_recipient_github_username_by_action(SAMPLE_GITHUB_PAYLOAD)
+        self.assertEqual(username, GENERIC_USERNAME)
+
+    def test_get_recipient_github_username_by_action_assignment(self):
+        """ Should return the requested reviewers username """
+        payload = SAMPLE_GITHUB_PAYLOAD.copy()
+        payload['action'] = 'assigned'
+        payload['assignee'] = payload.get('requested_reviewer')
+        del payload['requested_reviewer']
+
+        username = get_recipient_github_username_by_action(payload)
+        self.assertEqual(username, GENERIC_USERNAME)
+
+    def test_get_recipient_github_username_by_action_without_action(self):
+        """ Should raise a BadRequest """
+        with self.assertRaises(BadRequest):
+            payload = SAMPLE_GITHUB_PAYLOAD.copy()
+            del payload['action']
+            get_recipient_github_username_by_action(payload)
+
     def test_lookup_github_fullname(self):
         """ Test lookup_github_full_name. """
         with responses.RequestsMock() as rsps:
@@ -114,9 +136,14 @@ class GithubWebhookPayloadParserTest(TestCase):
         self.assertEqual(self.parser._data, {})
 
     def test_get_request_reviewer_username(self):
-        self.assertEqual(self.parser.get_request_reviewer_username(), 'big_daddy_bob')
+        self.assertEqual(self.parser.get_request_reviewer_username(), GENERIC_USERNAME)
         del self.parser._data['requested_reviewer']['login']
         self.assertIsNone(self.parser.get_request_reviewer_username())
+
+    def test_get_assignee_username(self):
+        self.assertIsNone(self.parser.get_assignee_username())
+        self.parser._data['assignee'] = {'login': GENERIC_USERNAME}
+        self.assertEqual(self.parser.get_assignee_username(), GENERIC_USERNAME)
 
     def test_get_pull_request_title(self):
         self.assertEqual(self.parser.get_pull_request_title(), 'PR Title')
@@ -139,7 +166,7 @@ class GithubWebhookPayloadParserTest(TestCase):
         self.assertIsNone(self.parser.get_pull_request_number())
 
     def test_get_pull_request_author(self):
-        self.assertEqual(self.parser.get_pull_request_author(), 'big_daddy_bob')
+        self.assertEqual(self.parser.get_pull_request_author(), GENERIC_USERNAME)
         del self.parser._data['pull_request']['user']['login']
         self.assertIsNone(self.parser.get_pull_request_author())
 

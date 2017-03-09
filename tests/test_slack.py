@@ -6,6 +6,8 @@ from unittest import TestCase
 from unittest import skipUnless
 from unittest.mock import patch
 
+from werkzeug.exceptions import BadRequest
+
 from app import slack
 from tests.test_github import FULL_NAME
 from tests.test_github import GENERIC_USERNAME
@@ -121,17 +123,36 @@ class SlackTest(TestCase):
     @patch('app.slack._get_slack_username_by_github_username')
     @patch('app.slack._get_unmatched_username')
     def test_create_review_slack_message_payload_with_no_data(self, get_username, get_unbygh, get_octocat, get_env):
-        """ Should create a slack message without any data. """
+        """ Should raise a BadRequest Exception. """
         get_octocat.return_value = 'octocat'
         get_env.return_value = None
         get_username.return_value = None
         get_unbygh.return_value = None
 
-        payload = slack._create_slack_message_payload({})
-        attachment = payload.get('attachments')[0]
-        self.assertEqual(attachment.get('fallback'), '<None|Unknown Title>')
-        self.assertEqual(attachment.get('author_name'), 'Unknown pull request #3.141592653589793')
-        self.assertEqual(attachment.get('title'), 'Unknown Title')
+        with self.assertRaises(BadRequest):
+            slack._create_slack_message_payload({})
+
+
+    @patch('os.environ.get')
+    def test_get_message(self, get_env):
+        """ Should test all permutations of messages. """
+
+        pinged_message = slack._get_message({}, {})
+        self.assertEqual("You've been pinged. Lucky you!", pinged_message)
+
+        review_message = slack._get_message({'author': GENERIC_USERNAME}, {'action': 'review_requested'})
+        expected_message = "You've been asked by big_daddy_bob to review a pull request. Lucky you!"
+        self.assertEqual(expected_message, review_message)
+
+        assigned_message = slack._get_message({'author': GENERIC_USERNAME}, {'action': 'assigned'})
+        expected_message = "You've been assigned a pull request by big_daddy_bob. Lucky you!"
+        self.assertEqual(expected_message, assigned_message)
+
+        get_env.return_value = '#hello'
+        pr_metadata = {'author': GENERIC_USERNAME, 'channel': get_env.return_value}
+        default_channel_message = slack._get_message(pr_metadata, {'action': 'review_requested'})
+        expected_message = "Hey you, tech guys! You've been asked by big_daddy_bob to review a pull request. Lucky you!"
+        self.assertEqual(expected_message, default_channel_message)
 
     @patch('app.slack._get_slack_username_by_github_username')
     def test_get_notification_channel(self, username_getter):

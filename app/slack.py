@@ -1,14 +1,15 @@
 """ Code related to slack webhooks and API calls. """
 
 import datetime
-import os
 import logging
 import math
+import os
 
 from slackclient import SlackClient
 
-from app.github import lookup_github_full_name
 from app.github import GithubWebhookPayloadParser
+from app.github import get_recipient_github_username_by_action
+from app.github import lookup_github_full_name
 from app.octocats import get_random_octocat_image
 
 
@@ -95,8 +96,8 @@ def _get_pull_request_metadata(data):
 
 
 def _get_notification_channel(data):
-    payload_parser = GithubWebhookPayloadParser(data)
-    slack_username = _get_slack_username_by_github_username(payload_parser.get_request_reviewer_username())
+    github_username = get_recipient_github_username_by_action(data)
+    slack_username = _get_slack_username_by_github_username(github_username)
 
     if slack_username:
         channel = '@{}'.format(slack_username)

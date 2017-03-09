@@ -27,6 +27,20 @@ def _validate_pull_request(data):
     return True
 
 
+def get_recipient_github_username_by_action(data):
+    """ Parse and return the recipient username by action type. """
+    payload_parser = GithubWebhookPayloadParser(data)
+
+    if data.get('action') == 'review_requested':
+        username = payload_parser.get_request_reviewer_username()
+    elif data.get('action') == 'assigned':
+        username = payload_parser.get_assignee_username()
+    else:
+        raise BadRequest('Github username not found')
+
+    return username
+
+
 def lookup_github_full_name(gh_username):
     """ Retrieve a github user's full name by username. """
     url = 'https://api.github.com/users/{}'.format(gh_username)
@@ -46,6 +60,10 @@ class GithubWebhookPayloadParser(object):
     def get_request_reviewer_username(self):
         """ Parse and retrieve the requested reviewer username. """
         return self._data.get('requested_reviewer', {}).get('login')
+
+    def get_assignee_username(self):
+        """ Parse and retrieve the assignee's username. """
+        return self._data.get('assignee', {}).get('login')
 
     def get_pull_request_title(self):
         """ Parse and retrieve the pull request title. """
