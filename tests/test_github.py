@@ -9,7 +9,6 @@ from werkzeug.exceptions import BadRequest
 
 from app.github import lookup_github_full_name
 from app.github import is_valid_pull_request
-# from app.github import validate_assignment_request
 from app.github import GithubWebhookPayloadParser
 
 

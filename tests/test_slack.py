@@ -62,8 +62,6 @@ class SlackTest(TestCase):
         get_env.return_value = '#default-channel'
 
         payload = slack._create_slack_message_payload(SAMPLE_GITHUB_PAYLOAD)
-        # 1generated_payload = {'attachments': [{'fallback': '<http://www.example.com|PR Title>', 'color': '#36a64f', 'author_name': 'Example Repository pull request #1', 'author_link': 'http://www.example.com', 'author_icon': 'https://github.com/favicon.ico', 'title': 'PR Title', 'title_link': 'http://www.example.com', 'text': 'An example pull request.', 'thumb_url': 'octocat', 'footer': 'Github PR Notifier', 'footer_icon': 'https://github.com/apple-touch-icon-180x180.png', 'ts': int(datetime.datetime.now().timestamp())}], 'channel': '#leia'}  # noqa: E501, pylint: disable=line-too-long
-        # self.assertDictEqual(payload, 1generated_payload)
 
         self.assertEqual(payload.get('text'), "You've been asked by @obiwan to review a pull request. Lucky you!")
         self.assertTrue(payload.get('as_user'))
