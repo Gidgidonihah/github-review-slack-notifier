@@ -41,8 +41,8 @@ def _should_retrieve_rss_file():
         return True
     elif _is_file_older_than_7_days(RSS_FILE):
         return True
-    else:
-        return False
+
+    return False
 
 
 def _is_file_older_than_7_days(path):
