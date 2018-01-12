@@ -29,6 +29,3 @@ pipeline:
       - pip install -r requirements-dev.txt
       - flake8
       - find . -iname "*.py" | xargs pylint
-    when:
-      event: push
-      branch: master
