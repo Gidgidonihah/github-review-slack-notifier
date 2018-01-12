@@ -5,6 +5,7 @@ workspace:
 pipeline:
   test:
     image: python:3.5
+    group: quality
     environment:
       - PYTHONPATH=/app:$PYTHONPATH
       - CI_BRANCH=${DRONE_COMMIT_BRANCH}
@@ -16,12 +17,13 @@ pipeline:
       - export CI_BUILD_NUMBER=${DRONE_BUILD_NUMBER}
       - export CI_BUILD_URL=${DRONE_BUILD_LINK}
       - export CI_PULL_REQUEST=${DRONE_PULL_REQUEST}
-      - export COVERALLS_REPO_TOKEN=${COVERALLS_TOKEN}
       - coverage run -m unittest discover
       - coverage report -m
       - coveralls
+    secrets: [ coveralls_repo_token ]
   code-standards:
     image: python:3.5
+    group: quality
     environment:
       - PYTHONPATH=/app:$PYTHONPATH
     commands:
@@ -29,5 +31,3 @@ pipeline:
       - pip install -r requirements-dev.txt
       - flake8
       - find . -iname "*.py" | xargs pylint
-    when:
-      event: [pull_request]

@@ -124,7 +124,10 @@ def _get_slack_username_by_github_username(github_username):  # pylint: disable=
 
 def _match_slack_github_username(users, github_username):
     for user in users:
-        if isinstance(user, dict) and user.get('name').lower() == github_username.lower():
+        if isinstance(user, dict) and (
+                user.get('name').lower() == github_username.lower()
+                or user.get('profile', {}).get('display_name', '').lower() == github_username.lower()
+        ):
             return user.get('name')
     return None
 
@@ -132,7 +135,7 @@ def _match_slack_github_username(users, github_username):
 def _match_slack_un_by_fullname(users, full_name):
     if full_name:
         for user in users:
-            if isinstance(user, dict) and user.get('real_name', '').lower() == full_name.lower():
+            if isinstance(user, dict) and user.get('real_name', '').strip().lower() == full_name.strip().lower():
                 return user.get('name')
     return None
 
@@ -140,10 +143,11 @@ def _match_slack_un_by_fullname(users, full_name):
 def _get_unmatched_username(data):
     payload_parser = GithubWebhookPayloadParser(data)
     github_username = payload_parser.get_request_reviewer_username()
+
     if github_username is not None:
         return '@{}'.format(github_username)
-    else:
-        return 'Hey you, tech guys'
+
+    return 'Hey you, tech guys'
 
 
 def _send_slack_message(payload):

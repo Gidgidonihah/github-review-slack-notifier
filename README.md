@@ -3,17 +3,18 @@
 This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond
 to custom github webhooks.
 
-[![Coverage Status](https://coveralls.io/repos/github/DobaTech/github-review-slack-notifier/badge.svg?branch=master)](https://coveralls.io/github/DobaTech/github-review-slack-notifier)
-[![Build Status](http://ci.projectthanos.com/api/badges/DobaTech/github-review-slack-notifier/status.svg)](https://ci.projectthanos.com/DobaTech/github-review-slack-notifier)
+[![Coverage Status](https://coveralls.io/repos/github/CruxConnect/github-review-slack-notifier/badge.svg?branch=master)](https://coveralls.io/github/CruxConnect/github-review-slack-notifier)
+[![Build Status](https://drone.cruxconnect.com/api/badges/CruxConnect/github-review-slack-notifier/status.svg)](https://drone.cruxconnect.com/CruxConnect/github-review-slack-notifier/)
+
 
 
 ## What it does
 
 When a pull request hook is received, the app does the following things:
 
-1. Check the action on the PR webook. Only continues if it is a review request
+1. Check the action on the PR webook. Only continues if it is a review request or assignment
 1. Look up all slack users
-1. Attempt to match the github username to a slack username
+1. Attempt to match the github username to a slack username or displayname
 1. If there is no match, it will retrieve the github user's full name via the API and attempt to match it to a slack full name.
 1. If there is no matched username, it will use a generic phrase, and post the message in the default channel
 1. If a matched slack username is found, a message will be sent to the matched user only.

@@ -14,6 +14,7 @@ class ViewsTestCase(TestCase):
     @patch('app.views.notify_recipient')
     @patch('app.views.is_valid_pull_request')
     def test_valid_pull_request(self, validator, notifier):
+        """ Should notify upon a valid pull request. """
         validator.return_value = True
         notifier.return_value = True
         result = views.pull_request({}, None)
@@ -21,6 +22,7 @@ class ViewsTestCase(TestCase):
 
     @patch('app.views.is_valid_pull_request')
     def test_invalid_pull_request(self, validator):
+        """ Should ignore an invalid pull request. """
         validator.return_value = False
         result = views.pull_request({}, None)
         self.assertRegex(result, 'ignored')
