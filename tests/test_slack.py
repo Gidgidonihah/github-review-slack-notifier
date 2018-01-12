@@ -132,7 +132,6 @@ class SlackTest(TestCase):
         with self.assertRaises(BadRequest):
             slack._create_slack_message_payload({})
 
-
     @patch('os.environ.get')
     def test_get_message(self, get_env):
         """ Should test all permutations of messages. """
