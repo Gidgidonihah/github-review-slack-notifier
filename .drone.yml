@@ -16,10 +16,10 @@ pipeline:
       - export CI_BUILD_NUMBER=${DRONE_BUILD_NUMBER}
       - export CI_BUILD_URL=${DRONE_BUILD_LINK}
       - export CI_PULL_REQUEST=${DRONE_PULL_REQUEST}
-      - export COVERALLS_REPO_TOKEN=${COVERALLS_TOKEN}
       - coverage run -m unittest discover
       - coverage report -m
       - coveralls
+    secrets: [ coveralls_repo_token ]
   code-standards:
     image: python:3.5
     environment:
