@@ -5,6 +5,7 @@ workspace:
 pipeline:
   test:
     image: python:3.5
+    group: quality
     environment:
       - PYTHONPATH=/app:$PYTHONPATH
       - CI_BRANCH=${DRONE_COMMIT_BRANCH}
@@ -22,6 +23,7 @@ pipeline:
     secrets: [ coveralls_repo_token ]
   code-standards:
     image: python:3.5
+    group: quality
     environment:
       - PYTHONPATH=/app:$PYTHONPATH
     commands:
