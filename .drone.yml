@@ -30,4 +30,5 @@ pipeline:
       - flake8
       - find . -iname "*.py" | xargs pylint
     when:
-      event: [pull_request]
+      event: push
+      branch: master
