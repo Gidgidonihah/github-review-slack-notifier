@@ -1,11 +1,10 @@
 # github-slack-notifier
 
-This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver) to respond
-to custom github webhooks.
+This is a very basic flask server using [Flask-Hookserver](https://github.com/nickfrostatx/flask-hookserver)
+that responds to custom github webhooks.
 
 [![Coverage Status](https://coveralls.io/repos/github/CruxConnect/github-review-slack-notifier/badge.svg?branch=master)](https://coveralls.io/github/CruxConnect/github-review-slack-notifier)
 [![Build Status](https://drone.cruxconnect.com/api/badges/CruxConnect/github-review-slack-notifier/status.svg)](https://drone.cruxconnect.com/CruxConnect/github-review-slack-notifier/)
-
 
 
 ## What it does
@@ -27,28 +26,36 @@ When a pull request hook is received, the app does the following things:
 
 ## Setup
 
-First, create a custom slack bot. Get the API Key.
+First, [create a custom slack bot](https://get.slack.help/hc/en-us/articles/115005265703-Create-a-bot-for-your-workspace#create-a-bot).
+Save the API Key.
 
-Next, get a Github API Key. This is needed to lookup a user's full name.
+Next, [create a Github Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/).
+This used for basic auth needed to lookup a user's full name over the api.
 
-Next, create a custom github webhook on your repo or organization. The pull request event is currently the only event
-that matters. *Make note of the secret* Point the URL to where you will be hosting your code. Make sure to include
-`/hooks`. e.g. `https://my-github.example.com/hooks`
+Next, [create a custom github webhook](https://developer.github.com/webhooks/creating/) on your repo or organization.
+The webhook should be defined at the highest level for which you would like notifications.
+If you want notifications on a single repo, set it up on that repo.
+If you would like it for all repos on an organization, create the webhook on the organization.
+The pull request event is currently the only event that matters.
+*Make note of the secret*.
+Point the URL to where you will be hosting your code.
+Make sure to include `/hooks`. e.g. `https://my-github.example.com/hooks`
 
-Finally, host the code on a server that github can reach. You will need the following environment variables:
+Finally, host the code on a server that github can reach.
+You will need the following environment variables:
 
 ```
-export SLACK_BOT_TOKEN='<YOUR SLACKBOT TOKEN>'
-export GITHUB_WEBHOOKS_KEY='<YOUR WEBHOOK SECRET'
-export GITHUB_API_TOKEN='<YOUR GITHUB API TOKEN>'
-export GITHUB_API_USER='<YOUR GITHUB API USERNAME>'
-export DEFAULT_NOTIFICATION_CHANNEL='#<YOUR DEFAULT SLACK CHANNEL>'
+SLACK_BOT_TOKEN='<YOUR SLACKBOT TOKEN>'
+GITHUB_WEBHOOKS_KEY='<YOUR WEBHOOK SECRET'
+GITHUB_API_TOKEN='<YOUR GITHUB API TOKEN>'
+GITHUB_API_USER='<YOUR GITHUB API USERNAME>'
+DEFAULT_NOTIFICATION_CHANNEL='#<YOUR DEFAULT SLACK CHANNEL>' # Fallback channel where messages will appear when no user found
+IGNORED_USERS='<IGNOREDUSERNAME>,<ANOTHER_IGNORED_USERNAME>' # Actions initiated by these users will be ignored
 ```
-
 
 ## TODO
 
-* notification of review completion
-* The slack user lookup is not cached.
-* Perhaps would be better as an app that stores the github/slack username link.
-* The matching is imprecise and would probably break with two people of the same name.
+* Notification of review completion
+* Cache the slack user lookup to remove needless api calls.
+* The name matching is imprecise and would probably break with two people of the same name.
+* Would be better as an oauth app that stores the github/slack username link.

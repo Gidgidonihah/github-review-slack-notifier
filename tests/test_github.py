@@ -3,6 +3,7 @@
 import os
 from unittest import TestCase
 from unittest import skipUnless
+from unittest.mock import patch
 
 import responses
 from werkzeug.exceptions import BadRequest
@@ -44,6 +45,9 @@ class GithubReviewRequestTest(TestCase):
             'pull_request': {
                 'html_url': 'https://www.example.com',
             },
+            'sender': {
+                'login': 'generic-person',
+            },
         }
 
     def test_is_valid_pull_request_good(self):
@@ -76,6 +80,14 @@ class GithubReviewRequestTest(TestCase):
         """ Test with non matched action """
         data = self.valid_request.copy()
         data['action'] = 'generic_action'
+        is_valid_request = is_valid_pull_request(data)
+        self.assertFalse(is_valid_request)
+
+    @patch('app.github.IGNORED_USERS', 'ignoreme')
+    def test_is_valid_pull_request_from_ignored_users(self):
+        """ Test with non matched action """
+        data = self.valid_request.copy()
+        data['sender']['login'] = 'ignoreme'
         is_valid_request = is_valid_pull_request(data)
         self.assertFalse(is_valid_request)
 
