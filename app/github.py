@@ -7,6 +7,9 @@ import requests
 from werkzeug.exceptions import BadRequest
 
 
+IGNORED_USERS = os.environ.get('IGNORED_USERS', '').split(',')
+
+
 def is_valid_pull_request(data):
     """ Verify that the request from github is a valid review request. """
 
@@ -23,6 +26,9 @@ def _validate_pull_request(data):
 
     if 'pull_request' not in data or 'html_url' not in data.get('pull_request'):
         raise BadRequest('payload.pull_request.html_url missing')
+
+    if data.get('sender', {}).get('login') in IGNORED_USERS:
+        return False
 
     return True
 
