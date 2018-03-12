@@ -20,6 +20,8 @@ pipeline:
       - coverage run -m unittest discover
       - coverage report -m
       - coveralls
+    when:
+      event: push
     secrets: [ coveralls_repo_token ]
   code-standards:
     image: python:3.5
