@@ -37,7 +37,7 @@ The webhook should be defined at the highest level for which you would like noti
 If you want notifications on a single repo, set it up on that repo.
 If you would like it for all repos on an organization, create the webhook on the organization.
 The pull request event is currently the only event that matters.
-*Make note of the secret*.
+*Make note of the secret*. You will need to use this as an environment variable.
 Point the URL to where you will be hosting your code.
 Make sure to include `/hooks`. e.g. `https://my-github.example.com/hooks`
 
@@ -46,12 +46,16 @@ You will need the following environment variables:
 
 ```
 SLACK_BOT_TOKEN='<YOUR SLACKBOT TOKEN>'
-GITHUB_WEBHOOKS_KEY='<YOUR WEBHOOK SECRET'
+GITHUB_WEBHOOKS_KEY='<YOUR WEBHOOK SECRET>'
 GITHUB_API_TOKEN='<YOUR GITHUB API TOKEN>'
 GITHUB_API_USER='<YOUR GITHUB API USERNAME>'
 DEFAULT_NOTIFICATION_CHANNEL='#<YOUR DEFAULT SLACK CHANNEL>' # Fallback channel where messages will appear when no user found
 IGNORED_USERS='<IGNOREDUSERNAME>,<ANOTHER_IGNORED_USERNAME>' # Actions initiated by these users will be ignored
 ```
+
+## Using the Docker image
+
+You can use the [prebuilt Docker image](https://hub.docker.com/r/gidgidonihah/github-review-slack-notifier/) to run the server. Be sure to inject the appropriate env vars when starting up the container.
 
 ## TODO
 
@@ -59,3 +63,4 @@ IGNORED_USERS='<IGNOREDUSERNAME>,<ANOTHER_IGNORED_USERNAME>' # Actions initiated
 * Cache the slack user lookup to remove needless api calls.
 * The name matching is imprecise and would probably break with two people of the same name.
 * Would be better as an oauth app that stores the github/slack username link.
+* Improve the readme (provide better, more explicit setup steps)
