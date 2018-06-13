@@ -59,8 +59,6 @@ You can use the [prebuilt Docker image](https://hub.docker.com/r/gidgidonihah/gi
 
 ## TODO
 
-* Notification of review completion
-* Cache the slack user lookup to remove needless api calls.
-* The name matching is imprecise and would probably break with two people of the same name.
-* Would be better as an oauth app that stores the github/slack username link.
-* Improve the readme (provide better, more explicit setup steps)
+There are plenty of ways to improve this little app.
+See the [TODO labeled issues](https://github.com/Gidgidonihah/github-review-slack-notifier/issues?q=is%3Aissue+is%3Aopen+label%3Atodo) for a list of some of them.
+Pull request are welcome
