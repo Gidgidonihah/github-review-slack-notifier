@@ -118,8 +118,7 @@ def _get_slack_username_by_github_username(github_username):  # pylint: disable=
             full_name = lookup_github_full_name(github_username)
             slack_username = _match_slack_un_by_fullname(users, full_name)
         return slack_username
-    else:
-        return None
+    return None
 
 
 def _match_slack_github_username(users, github_username):
@@ -147,7 +146,7 @@ def _get_unmatched_username(data):
     if github_username is not None:
         return '@{}'.format(github_username)
 
-    return 'Hey you, tech guys'
+    return 'Hey you, tech people'
 
 
 def _send_slack_message(payload):

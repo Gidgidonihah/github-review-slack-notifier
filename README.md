@@ -61,4 +61,4 @@ You can use the [prebuilt Docker image](https://hub.docker.com/r/gidgidonihah/gi
 
 There are plenty of ways to improve this little app.
 See the [TODO labeled issues](https://github.com/Gidgidonihah/github-review-slack-notifier/issues?q=is%3Aissue+is%3Aopen+label%3Atodo) for a list of some of them.
-Pull request are welcome
+Pull requests are welcome

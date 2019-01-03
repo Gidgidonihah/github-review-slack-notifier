@@ -55,7 +55,7 @@ def lookup_github_full_name(gh_username):
     return user.get('name', '')
 
 
-class GithubWebhookPayloadParser(object):
+class GithubWebhookPayloadParser:
     """ A class to parse a github payload and return specific elements. """
 
     def __init__(self, data=None):
