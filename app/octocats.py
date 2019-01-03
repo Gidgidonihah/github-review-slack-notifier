@@ -39,7 +39,8 @@ def _should_retrieve_rss_file():
 
     if not os.path.exists(RSS_FILE):
         return True
-    elif _is_file_older_than_7_days(RSS_FILE):
+
+    if _is_file_older_than_7_days(RSS_FILE):
         return True
 
     return False
