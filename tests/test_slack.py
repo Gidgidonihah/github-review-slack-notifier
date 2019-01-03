@@ -150,7 +150,8 @@ class SlackTest(TestCase):
         get_env.return_value = '#hello'
         pr_metadata = {'author': GENERIC_USERNAME, 'channel': get_env.return_value}
         default_channel_message = slack._get_message(pr_metadata, {'action': 'review_requested'})
-        expected_message = "Hey you, tech guys! You've been asked by big_daddy_bob to review a pull request. Lucky you!"
+        expected_message = "Hey you, tech people!" \
+            " You've been asked by big_daddy_bob to review a pull request. Lucky you!"
         self.assertEqual(expected_message, default_channel_message)
 
     @patch('app.slack._get_slack_username_by_github_username')
@@ -220,7 +221,7 @@ class SlackTest(TestCase):
         self.assertEqual(name, '@{}'.format(GENERIC_USERNAME))
 
         name = slack._get_unmatched_username({})
-        self.assertEqual(name, 'Hey you, tech guys')
+        self.assertEqual(name, 'Hey you, tech people')
 
     @patch('slackclient.SlackClient.api_call')
     def test_send_slack_message(self, slack_client):

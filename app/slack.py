@@ -147,7 +147,7 @@ def _get_unmatched_username(data):
     if github_username is not None:
         return '@{}'.format(github_username)
 
-    return 'Hey you, tech guys'
+    return 'Hey you, tech people'
 
 
 def _send_slack_message(payload):
